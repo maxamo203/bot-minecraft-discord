@@ -69,13 +69,14 @@ jobs:
           node-version: 20
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      # Sin DISCORD_DEV_GUILD_ID: en prod los comandos se registran globalmente
-      # (puede tardar hasta 1h en propagarse la primera vez).
+      # Con DISCORD_DEV_GUILD_ID seteado, el registro es instantáneo en ese
+      # guild (sin esperar la propagación global, que puede tardar hasta 1h).
       - name: Registrar slash commands en Discord
         run: pnpm deploy-commands
         env:
           DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
           DISCORD_CLIENT_ID: ${{ secrets.DISCORD_CLIENT_ID }}
+          DISCORD_DEV_GUILD_ID: ${{ secrets.DISCORD_DEV_GUILD_ID }}
 
   deploy-aci:
     needs: build-and-push
