@@ -1,0 +1,38 @@
+{
+  "name": "mc-vm-bot",
+  "version": "0.1.0",
+  "description": "Bot de Discord para controlar el encendido/apagado de una VM que hostea servidores de Minecraft en Docker",
+  "type": "module",
+  "private": true,
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "deploy-commands": "tsx src/commands/deploy.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@azure/arm-compute": "^22.2.0",
+    "@azure/identity": "^4.5.0",
+    "discord.js": "^14.16.3",
+    "dotenv": "^16.4.5",
+    "minecraft-server-util": "^5.4.4",
+    "mongoose": "^8.8.3",
+    "ssh2": "^1.16.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.6",
+    "@types/ssh2": "^1.15.1",
+    "mongodb-memory-server": "^10.1.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.5"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["cpu-features", "esbuild", "mongodb-memory-server", "ssh2"]
+  }
+}
