@@ -5,6 +5,7 @@
   "type": "module",
   "private": true,
   "main": "dist/index.js",
+  "packageManager": "pnpm@10.15.0",
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "tsx watch src/index.ts",
