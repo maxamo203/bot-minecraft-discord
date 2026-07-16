@@ -1,0 +1,108 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+env:
+  REGISTRY: ghcr.io
+  ACI_RESOURCE_GROUP: ${{ secrets.ACI_RESOURCE_GROUP }}
+  ACI_CONTAINER_GROUP: ${{ secrets.ACI_CONTAINER_GROUP }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm test
+
+  build-and-push:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.image.outputs.image }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Normalizar el nombre de la imagen (ghcr.io exige minúsculas)
+        id: image-name
+        run: echo "name=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ steps.image-name.outputs.name }}:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ steps.image-name.outputs.name }}:latest
+
+      - id: image
+        run: echo "image=${{ env.REGISTRY }}/${{ steps.image-name.outputs.name }}:${{ github.sha }}" >> "$GITHUB_OUTPUT"
+
+  deploy-commands:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Sin DISCORD_DEV_GUILD_ID: en prod los comandos se registran globalmente
+      # (puede tardar hasta 1h en propagarse la primera vez).
+      - name: Registrar slash commands en Discord
+        run: pnpm deploy-commands
+        env:
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+          DISCORD_CLIENT_ID: ${{ secrets.DISCORD_CLIENT_ID }}
+
+  deploy-aci:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Crear/actualizar el container en Azure Container Instances
+        uses: azure/CLI@v2
+        with:
+          inlineScript: |
+            az container create \
+              --resource-group "${{ env.ACI_RESOURCE_GROUP }}" \
+              --name "${{ env.ACI_CONTAINER_GROUP }}" \
+              --image "${{ needs.build-and-push.outputs.image }}" \
+              --registry-login-server ${{ env.REGISTRY }} \
+              --registry-username "${{ github.actor }}" \
+              --registry-password "${{ secrets.GITHUB_TOKEN }}" \
+              --os-type Linux \
+              --cpu 1 \
+              --memory 1 \
+              --restart-policy Always \
+              --secure-environment-variables \
+                DISCORD_TOKEN="${{ secrets.DISCORD_TOKEN }}" \
+                DISCORD_CLIENT_ID="${{ secrets.DISCORD_CLIENT_ID }}" \
+                MONGO_URI="${{ secrets.MONGO_URI }}" \
+                ENCRYPTION_KEY="${{ secrets.ENCRYPTION_KEY }}"
