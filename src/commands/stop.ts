@@ -4,10 +4,11 @@ import { requireGuildContext } from "../utils/permissions.js";
 import { buildCloudProvider, getGuildConfigOrThrow } from "./shared.js";
 import { stopMonitor } from "../monitor/monitorManager.js";
 import { gordoFail, gordoOk } from "../utils/gordoMessages.js";
+import { COMMAND_NAMES } from "./commandNames.js";
 import type { Command } from "./Command.js";
 
 export class StopCommand implements Command {
-  readonly data = new SlashCommandBuilder().setName("stop").setDescription("Apaga la VM manualmente");
+  readonly data = new SlashCommandBuilder().setName(COMMAND_NAMES.stop).setDescription("Apaga la VM manualmente");
 
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     if (!(await requireGuildContext(interaction))) return;

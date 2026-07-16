@@ -3,11 +3,12 @@ import { GuildConfig } from "../db/models/GuildConfig.js";
 import { requireGuildContext } from "../utils/permissions.js";
 import { getGuildConfigOrThrow } from "./shared.js";
 import { gordoFail, gordoOk } from "../utils/gordoMessages.js";
+import { COMMAND_NAMES } from "./commandNames.js";
 import type { Command } from "./Command.js";
 
 export class ConfigCommand implements Command {
   readonly data = new SlashCommandBuilder()
-    .setName("config")
+    .setName(COMMAND_NAMES.config)
     .setDescription("Configura los intervalos de polling de inactividad")
     .addIntegerOption((o) =>
       o.setName("interval_minutes").setDescription("Minutos entre chequeos de jugadores").setRequired(false).setMinValue(1)

@@ -7,11 +7,12 @@ import { runContainer, listContainers, startContainer } from "../ssh/dockerClien
 import { getServerStatus } from "../mc/status.js";
 import { startMonitor } from "../monitor/monitorManager.js";
 import { gordoFail, gordoOk } from "../utils/gordoMessages.js";
+import { COMMAND_NAMES, SERVER_SUBCOMMANDS } from "./commandNames.js";
 import type { Command } from "./Command.js";
 
 export class StartCommand implements Command {
   readonly data = new SlashCommandBuilder()
-    .setName("start")
+    .setName(COMMAND_NAMES.start)
     .setDescription("Enciende la VM y levanta un servidor de Minecraft")
     .addStringOption((o) => o.setName("name").setDescription("Nombre del servidor (default: el predeterminado)").setRequired(false));
 
@@ -32,7 +33,9 @@ export class StartCommand implements Command {
     const requestedName = interaction.options.getString("name") ?? guildConfig.defaultServerName;
     if (!requestedName) {
       await interaction.editReply(
-        gordoFail("No especificaste un servidor y no hay uno predeterminado. Usá `/server list` o `/server default`.")
+        gordoFail(
+          `No especificaste un servidor y no hay uno predeterminado. Usá \`/${COMMAND_NAMES.server} ${SERVER_SUBCOMMANDS.list}\` o \`/${COMMAND_NAMES.server} ${SERVER_SUBCOMMANDS.default}\`.`
+        )
       );
       return;
     }

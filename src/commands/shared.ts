@@ -1,12 +1,13 @@
 import { GuildConfig } from "../db/models/GuildConfig.js";
 import { createCloudProvider } from "../cloud/factory.js";
+import { COMMAND_NAMES } from "./commandNames.js";
 import type { CloudProvider } from "../cloud/CloudProvider.js";
 import type { SshCredentials } from "../ssh/dockerClient.js";
 
 export async function getGuildConfigOrThrow(guildId: string) {
   const config = await GuildConfig.findOne({ guildId });
   if (!config) {
-    throw new Error("Todavía no le di de comer a este servidor. Usá `/init` primero para llenarle la heladera.");
+    throw new Error(`Todavía no le di de comer a este servidor. Usá \`/${COMMAND_NAMES.init}\` primero para llenarle la heladera.`);
   }
   return config;
 }

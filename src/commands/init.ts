@@ -4,11 +4,12 @@ import { createCloudProvider } from "../cloud/factory.js";
 import { testSshConnection } from "../ssh/dockerClient.js";
 import { requireGuildContext } from "../utils/permissions.js";
 import { gordoFail, gordoOk } from "../utils/gordoMessages.js";
+import { COMMAND_NAMES, SERVER_SUBCOMMANDS } from "./commandNames.js";
 import type { Command } from "./Command.js";
 
 export class InitCommand implements Command {
   readonly data = new SlashCommandBuilder()
-    .setName("init")
+    .setName(COMMAND_NAMES.init)
     .setDescription("Configura las credenciales de Azure y SSH para este servidor de Discord")
     .addStringOption((o) => o.setName("tenant_id").setDescription("Azure AD tenant ID").setRequired(true))
     .addStringOption((o) => o.setName("client_id").setDescription("Azure service principal client ID").setRequired(true))
@@ -83,7 +84,7 @@ export class InitCommand implements Command {
 
     await interaction.editReply(
       gordoOk(
-        "Configuración guardada y bien cifradita en la base de datos, como fiambre en la heladera. Ahora usá `/server create` para agregar un servidor de Minecraft."
+        `Configuración guardada y bien cifradita en la base de datos, como fiambre en la heladera. Ahora usá \`/${COMMAND_NAMES.server} ${SERVER_SUBCOMMANDS.create}\` para agregar un servidor de Minecraft.`
       )
     );
   }

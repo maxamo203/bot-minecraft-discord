@@ -3,11 +3,12 @@ import { MinecraftServer } from "../db/models/MinecraftServer.js";
 import { buildCloudProvider, buildSshCredentials, getGuildConfigOrThrow } from "./shared.js";
 import { getServerStatus } from "../mc/status.js";
 import { gordoFail, gordoOk } from "../utils/gordoMessages.js";
+import { COMMAND_NAMES } from "./commandNames.js";
 import type { Command } from "./Command.js";
 
 export class StatusCommand implements Command {
   readonly data = new SlashCommandBuilder()
-    .setName("status")
+    .setName(COMMAND_NAMES.status)
     .setDescription("Muestra el estado de la VM y del servidor de Minecraft");
 
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {

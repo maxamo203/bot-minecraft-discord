@@ -5,15 +5,16 @@ import { requireGuildContext } from "../utils/permissions.js";
 import { buildCloudProvider, buildSshCredentials, getGuildConfigOrThrow } from "./shared.js";
 import { extractNamedVolume, listRunningContainers, removeContainer, runContainer } from "../ssh/dockerClient.js";
 import { gordoFail, gordoOk } from "../utils/gordoMessages.js";
+import { COMMAND_NAMES, SERVER_SUBCOMMANDS } from "./commandNames.js";
 import type { Command } from "./Command.js";
 
 export class ServerCommand implements Command {
   readonly data = new SlashCommandBuilder()
-    .setName("server")
+    .setName(COMMAND_NAMES.server)
     .setDescription("Administra los servidores de Minecraft guardados")
     .addSubcommand((sub) =>
       sub
-        .setName("create")
+        .setName(SERVER_SUBCOMMANDS.create)
         .setDescription("Guarda un servidor de Minecraft nuevo (forward de docker run)")
         .addStringOption((o) => o.setName("name").setDescription("Nombre para identificarlo").setRequired(true))
         .addStringOption((o) => o.setName("container_name").setDescription("Nombre del contenedor Docker").setRequired(true))
@@ -25,16 +26,16 @@ export class ServerCommand implements Command {
         )
         .addIntegerOption((o) => o.setName("port").setDescription("Puerto del servidor (default 25565)").setRequired(false))
     )
-    .addSubcommand((sub) => sub.setName("list").setDescription("Lista los servidores guardados"))
+    .addSubcommand((sub) => sub.setName(SERVER_SUBCOMMANDS.list).setDescription("Lista los servidores guardados"))
     .addSubcommand((sub) =>
       sub
-        .setName("default")
+        .setName(SERVER_SUBCOMMANDS.default)
         .setDescription("Marca un servidor como el predeterminado")
         .addStringOption((o) => o.setName("name").setDescription("Nombre del servidor").setRequired(true))
     )
     .addSubcommand((sub) =>
       sub
-        .setName("remove")
+        .setName(SERVER_SUBCOMMANDS.remove)
         .setDescription("Elimina un servidor guardado y su contenedor Docker")
         .addStringOption((o) => o.setName("name").setDescription("Nombre del servidor").setRequired(true))
         .addBooleanOption((o) =>
@@ -58,22 +59,22 @@ export class ServerCommand implements Command {
       return;
     }
 
-    if (sub === "create") {
+    if (sub === SERVER_SUBCOMMANDS.create) {
       await this.create(interaction, guildId, guildConfig);
       return;
     }
 
-    if (sub === "list") {
+    if (sub === SERVER_SUBCOMMANDS.list) {
       await this.list(interaction, guildId);
       return;
     }
 
-    if (sub === "default") {
+    if (sub === SERVER_SUBCOMMANDS.default) {
       await this.setDefault(interaction, guildId);
       return;
     }
 
-    if (sub === "remove") {
+    if (sub === SERVER_SUBCOMMANDS.remove) {
       await this.remove(interaction, guildId, guildConfig);
     }
   }
@@ -102,7 +103,7 @@ export class ServerCommand implements Command {
     if (!powerState?.running) {
       await interaction.reply({
         content: gordoFail(
-          "La VM está apagada, no puedo cocinar nada con el horno frío. Prendela con `/start` (de otro servidor ya creado) o esperá a tener uno para poder arrancarla."
+          `La VM está apagada, no puedo cocinar nada con el horno frío. Prendela con \`/${COMMAND_NAMES.start}\` (de otro servidor ya creado) o esperá a tener uno para poder arrancarla.`
         ),
         ephemeral: true,
       });
@@ -133,7 +134,9 @@ export class ServerCommand implements Command {
 
     if (servers.length === 0) {
       await interaction.reply({
-        content: gordoFail("Tengo la panza vacía, no hay servidores guardados todavía. Usá `/server create`."),
+        content: gordoFail(
+          `Tengo la panza vacía, no hay servidores guardados todavía. Usá \`/${COMMAND_NAMES.server} ${SERVER_SUBCOMMANDS.create}\`.`
+        ),
         ephemeral: true,
       });
       return;
@@ -187,7 +190,7 @@ export class ServerCommand implements Command {
       if (runningContainers.includes(server.containerName)) {
         await interaction.reply({
           content: gordoFail(
-            `"${name}" está corriendo ahora mismo, no le voy a sacar el plato a alguien que está comiendo. Pará el servidor con \`/stop\` primero.`
+            `"${name}" está corriendo ahora mismo, no le voy a sacar el plato a alguien que está comiendo. Pará el servidor con \`/${COMMAND_NAMES.stop}\` primero.`
           ),
           ephemeral: true,
         });

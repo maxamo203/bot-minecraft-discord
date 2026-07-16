@@ -2,6 +2,7 @@ import { MongoMemoryServer } from "mongodb-memory-server";
 import mongoose from "mongoose";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import type { ChatInputCommandInteraction } from "discord.js";
+import { COMMAND_NAMES, SERVER_SUBCOMMANDS } from "./commandNames.js";
 
 process.env.ENCRYPTION_KEY = "c".repeat(64);
 process.env.DISCORD_TOKEN = "test-token";
@@ -102,23 +103,23 @@ describe("/server (integración)", () => {
 
     const createInteraction = makeInteraction({
       guildId,
-      subcommand: "create",
+      subcommand: SERVER_SUBCOMMANDS.create,
       options: { name: "survival", container_name: "mc-survival", docker_run_args: "-d --name mc-survival itzg/minecraft-server", port: 25565 },
     });
     await command.execute(createInteraction);
     expect(runContainerMock).toHaveBeenCalledWith(expect.anything(), "-d --name mc-survival itzg/minecraft-server");
     expect(createInteraction.editReply).toHaveBeenCalledWith(expect.stringContaining("creado"));
 
-    const listInteraction = makeInteraction({ guildId, subcommand: "list" });
+    const listInteraction = makeInteraction({ guildId, subcommand: SERVER_SUBCOMMANDS.list });
     await command.execute(listInteraction);
     expect(listInteraction.reply).toHaveBeenCalledWith(expect.objectContaining({ content: expect.stringContaining("survival") }));
 
-    const defaultInteraction = makeInteraction({ guildId, subcommand: "default", options: { name: "survival" } });
+    const defaultInteraction = makeInteraction({ guildId, subcommand: SERVER_SUBCOMMANDS.default, options: { name: "survival" } });
     await command.execute(defaultInteraction);
     const guildConfig = await GuildConfig.findOne({ guildId });
     expect(guildConfig?.defaultServerName).toBe("survival");
 
-    const removeInteraction = makeInteraction({ guildId, subcommand: "remove", options: { name: "survival" } });
+    const removeInteraction = makeInteraction({ guildId, subcommand: SERVER_SUBCOMMANDS.remove, options: { name: "survival" } });
     await command.execute(removeInteraction);
     expect(removeContainerMock).toHaveBeenCalledWith(expect.anything(), "mc-survival", undefined);
     const remaining = await MinecraftServer.findOne({ guildId, name: "survival" });
@@ -129,7 +130,7 @@ describe("/server (integración)", () => {
     const interaction = {
       inGuild: () => false,
       reply: vi.fn().mockResolvedValue(undefined),
-      options: { getSubcommand: () => "list" },
+      options: { getSubcommand: () => SERVER_SUBCOMMANDS.list },
     } as unknown as ChatInputCommandInteraction;
 
     await command.execute(interaction);
@@ -142,8 +143,8 @@ describe("/server (integración)", () => {
     await seedGuildConfig(guildId);
     const opts = { name: "survival", container_name: "mc-survival", docker_run_args: "-d --name mc-survival itzg/minecraft-server" };
 
-    await command.execute(makeInteraction({ guildId, subcommand: "create", options: opts }));
-    const second = makeInteraction({ guildId, subcommand: "create", options: opts });
+    await command.execute(makeInteraction({ guildId, subcommand: SERVER_SUBCOMMANDS.create, options: opts }));
+    const second = makeInteraction({ guildId, subcommand: SERVER_SUBCOMMANDS.create, options: opts });
     await command.execute(second);
 
     expect(second.reply).toHaveBeenCalledWith(expect.objectContaining({ content: expect.stringContaining("Ya existe") }));
@@ -159,7 +160,7 @@ describe("/server (integración)", () => {
 
     const interaction = makeInteraction({
       guildId,
-      subcommand: "create",
+      subcommand: SERVER_SUBCOMMANDS.create,
       options: { name: "survival", container_name: "mc-survival", docker_run_args: "-d itzg/minecraft-server" },
     });
     await command.execute(interaction);
@@ -182,7 +183,7 @@ describe("/server (integración)", () => {
     });
     listRunningContainersMock.mockResolvedValueOnce(["mc-survival"]);
 
-    const interaction = makeInteraction({ guildId, subcommand: "remove", options: { name: "survival" } });
+    const interaction = makeInteraction({ guildId, subcommand: SERVER_SUBCOMMANDS.remove, options: { name: "survival" } });
     await command.execute(interaction);
 
     expect(interaction.reply).toHaveBeenCalledWith(expect.objectContaining({ content: expect.stringContaining("corriendo") }));
@@ -202,22 +203,22 @@ describe("/server (integración)", () => {
       port: 25565,
     });
 
-    const interaction = makeInteraction({ guildId, subcommand: "remove", options: { name: "survival", delete_volume: true } });
+    const interaction = makeInteraction({ guildId, subcommand: SERVER_SUBCOMMANDS.remove, options: { name: "survival", delete_volume: true } });
     await command.execute(interaction);
 
     expect(removeContainerMock).toHaveBeenCalledWith(expect.anything(), "mc-survival", "minecraft-data");
   });
 
-  it("rechaza cualquier subcomando si el guild no corrió /init todavía", async () => {
+  it("rechaza cualquier subcomando si el guild no corrió /gordo-init todavía", async () => {
     const interaction = makeInteraction({
       guildId: "guild-int-4-sin-init",
-      subcommand: "list",
+      subcommand: SERVER_SUBCOMMANDS.list,
     });
 
     await command.execute(interaction);
 
     expect(interaction.reply).toHaveBeenCalledWith(
-      expect.objectContaining({ content: expect.stringContaining("/init") })
+      expect.objectContaining({ content: expect.stringContaining(`/${COMMAND_NAMES.init}`) })
     );
   });
 });

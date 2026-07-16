@@ -50,39 +50,39 @@ acceso puede leer/gestionar las credenciales de la VM.
 
 ## Uso
 
-1. **`/init`**: guarda las credenciales de Azure (tenant, service
+1. **`/gordo-init`**: guarda las credenciales de Azure (tenant, service
    principal, subscription, resource group, nombre de VM) y de SSH (host, usuario,
    password o clave privada). Se validan antes de guardarse y quedan cifradas en Mongo.
-2. **`/server create`**: crea el contenedor Docker en la VM (requiere que esté
+2. **`/gordo-server create`**: crea el contenedor Docker en la VM (requiere que esté
    encendida) y lo guarda en el bot. `docker_run_args` es el forward literal de
    los argumentos de `docker run` que crean/levantan el contenedor (imagen,
    puertos, volúmenes, variables de entorno, etc.), por ejemplo:
    ```
    -d --name mc-survival -p 25565:25565 -e EULA=TRUE itzg/minecraft-server
    ```
-3. **`/server list`**: lista los servidores guardados con su dirección
+3. **`/gordo-server list`**: lista los servidores guardados con su dirección
    `host:puerto` lista para copiar y pegar en el cliente de Minecraft.
-   **`/server default`**: marca uno como predeterminado.
-   **`/server remove`**: borra el contenedor Docker real y el registro del
-   bot. Si el contenedor está corriendo, hay que pararlo primero con `/stop`.
+   **`/gordo-server default`**: marca uno como predeterminado.
+   **`/gordo-server remove`**: borra el contenedor Docker real y el registro del
+   bot. Si el contenedor está corriendo, hay que pararlo primero con `/gordo-stop`.
    Con `delete_volume:true` borra también el volumen de datos (el mundo) —
    irreversible.
-4. **`/start [name]`**: enciende la VM, levanta el contenedor y empieza a monitorear.
+4. **`/gordo-start [name]`**: enciende la VM, levanta el contenedor y empieza a monitorear.
    Sin `name`, usa el servidor predeterminado.
-5. **`/status`**: estado de la VM y del servidor de Minecraft (jugadores conectados).
-6. **`/stop`**: apaga la VM manualmente.
-7. **`/config`**: ajusta `interval_minutes` (frecuencia de chequeo de jugadores),
+5. **`/gordo-status`**: estado de la VM y del servidor de Minecraft (jugadores conectados).
+6. **`/gordo-stop`**: apaga la VM manualmente.
+7. **`/gordo-config`**: ajusta `interval_minutes` (frecuencia de chequeo de jugadores),
    `empty_checks_threshold` (chequeos vacíos consecutivos antes de apagar) y
    `boot_timeout_minutes` (tiempo máximo de espera a que el server arranque).
-8. **`/helpgordo`**: muestra un resumen de todos los comandos disponibles.
+8. **`/gordo-help`**: muestra un resumen de todos los comandos disponibles.
 
 ### Auto-apagado
 
-Al detectar que el servidor de Minecraft respondió (`/start`), el bot espera
+Al detectar que el servidor de Minecraft respondió (`/gordo-start`), el bot espera
 `interval_minutes` y recién ahí hace el primer chequeo de jugadores. Si un
 chequeo (o `empty_checks_threshold` chequeos consecutivos, si se configuró
 mayor a 1) da 0 jugadores, apaga la VM automáticamente y avisa en el canal
-donde se ejecutó `/start`.
+donde se ejecutó `/gordo-start`.
 
 ## Fuera de alcance
 
@@ -161,7 +161,7 @@ necesita la imagen ya publicada.
 | `ACI_CONTAINER_GROUP` | Nombre del container group en ACI |
 
 `AZURE_CREDENTIALS` es **distinto** del Service Principal que guardaste con
-`/init` (ese es para que el *bot* controle la VM de Minecraft; este es para
+`/gordo-init` (ese es para que el *bot* controle la VM de Minecraft; este es para
 que *GitHub Actions* controle ACI). Se genera así, con permisos acotados al
 resource group del container:
 

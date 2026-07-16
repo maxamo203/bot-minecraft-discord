@@ -46,7 +46,7 @@ export class ServerMonitor {
     void this.runBootPhase(Date.now());
   }
 
-  /** Cancela el monitor (ej. por /stop manual o porque se lanzó un nuevo /start). No apaga la VM. */
+  /** Cancela el monitor (ej. por /gordo-stop manual o porque se lanzó un nuevo /gordo-start). No apaga la VM. */
   cancel(): void {
     this.cancelled = true;
     if (this.timer) clearTimeout(this.timer);
