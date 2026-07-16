@@ -1,8 +1,10 @@
 import { REST, Routes } from "discord.js";
-import { env } from "../config/env.js";
+import { loadDiscordEnv } from "../config/env.js";
 import { commands } from "./index.js";
 
 async function main() {
+  const env = loadDiscordEnv();
+
   const rest = new REST().setToken(env.DISCORD_TOKEN);
   const body = commands.map((c) => c.data.toJSON());
 
